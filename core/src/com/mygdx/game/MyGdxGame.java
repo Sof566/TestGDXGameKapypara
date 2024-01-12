@@ -3,6 +3,7 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.TimeUtils;
 
 public class MyGdxGame extends ApplicationAdapter { //public enam
@@ -37,11 +39,10 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 	Texture bttNotes, bttNotesOFF;
 	Texture musicON_text, musicOFF_text;
 	Texture bttBack;
-	Texture level1, level2, level2Red;
+	Texture level1, level2, level2Red, min2Level;
 	Texture pause, play;
 
-	//Sound sndBcgMusic = resources.getMusic(ResourceManager.bgMusic);
-	Sound sndBcgMusic;
+	Music sndBcgMusic;
 
 	MyButton buttonPlay, buttonDangerous;
 	MyButton buttonSettings;
@@ -58,6 +59,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 	boolean GameOver = false;
 	boolean loves = false;
 	boolean sound = true, music = true;
+	boolean level_1 = true, hit2 = false;
 
 	long startGame, time;
 	long durationGame = 7000;
@@ -66,6 +68,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 	long tKs;
 
 	int counter = 0, countKapy = 0, countFrog = 0;
+	int MINKapy = 6, MINFrog = 2;
 
 
 	Kapy kapy, kapy_mand;
@@ -104,13 +107,15 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		bcgSad = new Texture("bcgSad.png");
 		//buttonPause = new MyButton();
 		//buttonPlay = new MyButton();
-		level1 = new Texture("1_level.png");
-		level2 = new Texture("2_level.png");
-		level2Red = new Texture("2_level_red");
-		pause = new Texture("txt_pause.png");
-		play = new Texture("txt_play.png");
-		sndBcgMusic = Gdx.audio.newSound(Gdx.files.internal("sound/audio_gameKapy.mp3"));
+		level1 = new Texture("levels/1_level.png");
+		level2 = new Texture("levels/2_level.png");
+		level2Red = new Texture("levels/2_level_red.png");
+		pause = new Texture("levels/txt_pause.png");
+		play = new Texture("levels/txt_play.png");
+		min2Level = new Texture("levels/min2Level.png");
 
+
+		sndBcgMusic = Gdx.audio.newMusic(Gdx.files.internal("sound/audio_gameKapy.mp3"));
 
 
 
@@ -122,6 +127,8 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		buttonMusic = new MyButton(0, 220, 245, 205);
 		buttonBack = new MyButton(0, 620, 150, 100);
 		buttonRestart = new MyButton((int)SCR_WIDTH/2-201, 20, 403, 107);
+		buttonLevel1 = new MyButton((int)SCR_WIDTH/2-201-76, 150, 192, 82);
+		buttonLevel2 = new MyButton(660, 150, 192, 83);
 
 		touch = new Vector3();
 
@@ -135,7 +142,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		type = typeScreen.MenuKapy;
 
 
-		startGame = TimeUtils.millis();
+
 
 
 		kapy = new Kapy((int)(SCR_WIDTH), 155, 5, 206, 255);
@@ -146,9 +153,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 
 		generateFont();
 
-		/*sndBcgMusic = resources.getMusic(ResourceManager.bgMusic);
 		sndBcgMusic.setLooping(true);
-		sndBcgMusic.setVolume(0f);*/
 		sndBcgMusic.play();
 
 	}
@@ -169,15 +174,19 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		if(type == typeScreen.PlayKapy && !GameOver){
 			batch.draw(bcgSakuraKapy, 0, 0, SCR_WIDTH, SCR_HEIGHT);
 
+
 			time = TimeUtils.millis() - startGame;  //время игры
 			if(time > durationGame) {
 				GameOver = true;
 				System.out.println("GameOver");
 			}
+			font.draw(batch, getTimeString(), 0, SCR_HEIGHT-10, SCR_WIDTH, Align.center, true);
 
-			font.draw(batch, "Count: "+counter, SCR_WIDTH-150, SCR_HEIGHT-10);//счетчик
-			font.draw(batch, "Kapy: "+countKapy, SCR_WIDTH-150, SCR_HEIGHT-30);
-			font.draw(batch, "Frog: "+countFrog, SCR_WIDTH-150, SCR_HEIGHT-50);
+
+			font.draw(batch, "Count: "+counter, SCR_WIDTH-190, SCR_HEIGHT-10);//счетчик
+			font.draw(batch, "Kapy: "+countKapy, SCR_WIDTH-190, SCR_HEIGHT-30);
+			font.draw(batch, "Frog: "+countFrog, SCR_WIDTH-190, SCR_HEIGHT-50);
+			font.draw(batch, "level"+((level_1) ? "1" : "2"), SCR_WIDTH-190, SCR_HEIGHT-70);
 
 			kapy.move();
 			batch.draw(texture_kapy_min, kapy.x, kapy.y);
@@ -196,29 +205,45 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		}
 
 		if(GameOver) {
-			if(countKapy > 0 && countFrog > 0) {
+			if(level_1 && countKapy > MINKapy && countFrog > MINFrog || !level_1 && countKapy > MINKapy && countFrog > MINFrog) {
 				type = typeScreen.WinKapy;
-			}
-			else {
-				type = typeScreen.GameOverKapy;
-			}
+			}else type = typeScreen.GameOverKapy;
 		}
 
 		if(type == typeScreen.WinKapy) {
 			batch.draw(bcgPause, 0, 0, SCR_WIDTH, SCR_HEIGHT);
 			batch.draw(bcgWin, 0, 0, SCR_WIDTH, SCR_HEIGHT);
-			font.draw(batch, "Count: "+counter, SCR_WIDTH-150, SCR_HEIGHT-10);//счетчик
-			font.draw(batch, "Kapy: "+countKapy, SCR_WIDTH-150, SCR_HEIGHT-30);
-			font.draw(batch, "Frog: "+countFrog, SCR_WIDTH-150, SCR_HEIGHT-50);
+			font.draw(batch, "Count: "+counter, SCR_WIDTH-190, SCR_HEIGHT-10);//счетчик
+			font.draw(batch, "Kapy: "+countKapy, SCR_WIDTH-190, SCR_HEIGHT-30);
+			font.draw(batch, "Frog: "+countFrog, SCR_WIDTH-190, SCR_HEIGHT-50);
+			font.draw(batch, "level"+((level_1) ? "1" : "2"), SCR_WIDTH-190, SCR_HEIGHT-70);
 			batch.draw(bttRestart, SCR_WIDTH/2-201, 20);
+			batch.draw(level1, SCR_WIDTH/2-201-76, 150);
+			batch.draw(level2, 660, 150);
+			batch.draw(bttBack, 0, 620);
 		}
 
 		if(type == typeScreen.GameOverKapy) {
+			batch.draw(bcgPause, 0, 0, SCR_WIDTH, SCR_HEIGHT);
 			batch.draw(bcgSad, 0, 0, SCR_WIDTH, SCR_HEIGHT);
-			font.draw(batch, "Count: "+counter, SCR_WIDTH-150, SCR_HEIGHT-10);//счетчик
-			font.draw(batch, "Kapy: "+countKapy, SCR_WIDTH-150, SCR_HEIGHT-30);
-			font.draw(batch, "Frog: "+countFrog, SCR_WIDTH-150, SCR_HEIGHT-50);
+			font.draw(batch, "Count: "+counter, SCR_WIDTH-190, SCR_HEIGHT-10);//счетчик
+			font.draw(batch, "Kapy: "+countKapy, SCR_WIDTH-190, SCR_HEIGHT-30);
+			font.draw(batch, "Frog: "+countFrog, SCR_WIDTH-190, SCR_HEIGHT-50);
+			font.draw(batch, "level"+((level_1) ? "1" : "2"), SCR_WIDTH-190, SCR_HEIGHT-70);
 			batch.draw(bttRestart, SCR_WIDTH/2-201, 20);
+			batch.draw(level1, SCR_WIDTH/2-201-76, 150);
+			batch.draw(bttBack, 0, 620);
+			if(level_1) {
+				batch.draw(level2Red, 660, 150);
+				if(hit2){
+					batch.draw(min2Level, 0, 0);
+					font.draw(batch, "7", 250, 125);
+					font.draw(batch, "3", 220, 40);
+				}
+			} else {
+				batch.draw(level2, 660, 150);
+			}
+
 		}
 
 
@@ -247,7 +272,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 			if (music) {
 				batch.draw(bttNotes, 0, 220);
 				batch.draw(musicON_text, 245, 220);
-				sndBcgMusic.resume();
+				sndBcgMusic.play();
 			}
 			else {
 				batch.draw(bttNotesOFF, 0, 220);
@@ -272,12 +297,20 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 	void generateFont(){
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("main_font.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-		parameter.size = 15;
+		parameter.size = 20;
 		parameter.color = Color.valueOf("#fdb2f5");
 		parameter.borderColor = Color.valueOf("#f266e4");
 		parameter.borderWidth = 2;
 		font = generator.generateFont(parameter);
 		generator.dispose();
+	}
+
+	String getTimeString(){
+		long msec = time%1000;
+		long sec = time/1000%60;
+		long min = time/1000/60%60;
+		long hour = time/1000/60/60;
+		return ""+min/10+min%10+":"+sec/10+sec%10+":"+msec/100;
 	}
 
 	class MyInputProcessor implements InputProcessor {
@@ -304,6 +337,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 			if(type == typeScreen.MenuKapy) {
 				if(buttonPlay.hit(touch.x, touch.y)){
 					type = typeScreen.PlayKapy;
+					startGame = TimeUtils.millis();
 				}
 			}
 			if(type == typeScreen.PlayKapy) {
@@ -321,14 +355,36 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 				}
 			}
 
-			if(type == typeScreen.WinKapy) {
+			if(type == typeScreen.WinKapy || type == typeScreen.GameOverKapy) {
 				if(buttonRestart.hit(touch.x, touch.y)) {
 					type = typeScreen.PlayKapy;
 					counter = 0; countKapy = 0; countFrog = 0;
 					GameOver = false;
-					durationGame += 7000;
+					startGame = TimeUtils.millis();
+				}
+				if(!level_1 & buttonLevel1.hit(touch.x, touch.y)) {
+					level_1 = true;
+					MINKapy = 6; MINFrog = 2;
+					durationGame = 7000;
 				}
 			}
+
+			if(type == typeScreen.WinKapy & level_1) {
+				if(buttonLevel2.hit(touch.x, touch.y)) {
+					level_1 = false;
+					MINKapy = 11; MINFrog = 5;
+					durationGame = 15000;
+				}
+			}
+
+			if(type == typeScreen.GameOverKapy & level_1) {
+				if(buttonLevel2.hit(touch.x, touch.y)) {
+					hit2 = !hit2;
+				}
+			}
+
+
+
 			if(type == typeScreen.PauseKapy || type == typeScreen.MenuKapy) {
 				if(buttonSettings.hit(touch.x, touch.y)){
 					type = typeScreen.SettingKapy;
@@ -387,9 +443,6 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		WinKapy,
 		GameOverKapy
 	}
-
-
-
 }
 
 
