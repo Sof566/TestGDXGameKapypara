@@ -208,7 +208,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 			}
 
 			frog2.moveUp();
-			batch.draw(texture_frog_min, frog2.x, frog2.y);
+			batch.draw(texture_frog_min, frog2.x, frog2.y); //z
 			if(frog.y < SCR_WIDTH-98 || frog2.y > SCR_WIDTH+2) {
 				frog2.respawnUp();
 				System.out.println("frog");
