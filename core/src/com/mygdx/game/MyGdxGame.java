@@ -39,7 +39,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 	Texture bttNotes, bttNotesOFF;
 	Texture musicON_text, musicOFF_text;
 	Texture bttBack;
-	Texture level1, level2, level2Red, min2Level;
+	Texture level1, level2, level2Red, min2Level, min1Lvel;
 	Texture pause, play;
 
 	Music sndBcgMusic;
@@ -51,6 +51,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 	MyButton buttonBack, buttonRestart;
 	MyButton buttonLevel1, buttonLevel2;
 	MyButton buttonPause, ButtonPlay;
+	MyButton buttonBack2;
 
 	String type_kapyMin;
 
@@ -72,7 +73,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 
 
 	Kapy kapy, kapy_mand;
-	Frog frog;
+	Frog frog, frog2;
 
 	@Override
 	public void create () {
@@ -113,6 +114,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		pause = new Texture("levels/txt_pause.png");
 		play = new Texture("levels/txt_play.png");
 		min2Level = new Texture("levels/min2Level.png");
+		min1Lvel = new Texture("levels/min1Level.png");
 
 
 		sndBcgMusic = Gdx.audio.newMusic(Gdx.files.internal("sound/audio_gameKapy.mp3"));
@@ -129,6 +131,7 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		buttonRestart = new MyButton((int)SCR_WIDTH/2-201, 20, 403, 107);
 		buttonLevel1 = new MyButton((int)SCR_WIDTH/2-201-76, 150, 192, 82);
 		buttonLevel2 = new MyButton(660, 150, 192, 83);
+		buttonBack2 = new MyButton(0, 620, 150, 100);
 
 		touch = new Vector3();
 
@@ -149,6 +152,8 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		kapy_mand = new Kapy(-563, 0, 0, 209, 223);
 		kapy_mand.respawn_mand();
 		frog = new Frog(0, 0, 2, 2, 110, 98);
+		frog2 = new Frog(0, 0, 2, 2, 110, 98);
+		frog2.respawnUp();
 		frog.respawn();
 
 		generateFont();
@@ -160,7 +165,6 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 
 	@Override
 	public void render () {
-		System.out.println(time);
 		//отрисовка:
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
@@ -201,6 +205,13 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 			batch.draw(texture_frog_min, frog.x, frog.y);
 			if(frog.y < -98 || frog.y > 0) {
 				frog.respawn();
+			}
+
+			frog2.moveUp();
+			batch.draw(texture_frog_min, frog2.x, frog2.y);
+			if(frog.y < SCR_WIDTH-98 || frog2.y > SCR_WIDTH+2) {
+				frog2.respawnUp();
+				System.out.println("frog");
 			}
 		}
 
@@ -254,7 +265,10 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 		//меню сеттингов
 		if(type == typeScreen.SettingKapy) {
 			batch.draw(bcg_settings, 0, 0, SCR_WIDTH, SCR_HEIGHT);
+			batch.draw(min1Lvel, 0, 0);
+			batch.draw(min2Level, 238, 0);
 			batch.draw(bttBack, 0, 620);
+
 			if(loves == false) {
 				batch.draw(bttMyLove, SCR_WIDTH*2/3, SCR_HEIGHT/3, 200, 200);
 			}
@@ -353,7 +367,13 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 					counter += 1; countKapy += 1;
 					kapy_mand.respawn_mand();
 				}
+				if(frog2.hit(touch.x, touch.y)) {
+					countFrog += 1;
+					counter += 1;
+				}
 			}
+
+
 
 			if(type == typeScreen.WinKapy || type == typeScreen.GameOverKapy) {
 				if(buttonRestart.hit(touch.x, touch.y)) {
@@ -366,6 +386,29 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 					level_1 = true;
 					MINKapy = 6; MINFrog = 2;
 					durationGame = 7000;
+				}
+				if(buttonBack2.hit(touch.x, touch.y)) {
+					type = typeScreen.MenuKapy;
+					GameOver = false;
+				}
+			} else {
+				if(type == typeScreen.PauseKapy || type == typeScreen.MenuKapy) {
+					if(buttonSettings.hit(touch.x, touch.y)){
+						type = typeScreen.SettingKapy;
+					}
+				}else if(type == typeScreen.SettingKapy){
+					if(buttonMusic.hit(touch.x, touch.y)) {
+						music = !music;
+					}
+					if(buttonSound.hit(touch.x, touch.y)){
+						sound = !sound;
+					}
+					if(buttonLove.hit(touch.x, touch.y)){
+						loves = true;
+					}
+					if(buttonBack.hit(touch.x, touch.y)){
+						type = typeScreen.MenuKapy;
+					}
 				}
 			}
 
@@ -382,29 +425,6 @@ public class MyGdxGame extends ApplicationAdapter { //public enam
 					hit2 = !hit2;
 				}
 			}
-
-
-
-			if(type == typeScreen.PauseKapy || type == typeScreen.MenuKapy) {
-				if(buttonSettings.hit(touch.x, touch.y)){
-					type = typeScreen.SettingKapy;
-				}
-			}else if(type == typeScreen.SettingKapy){
-				if(buttonMusic.hit(touch.x, touch.y)) {
-					music = !music;
-				}
-				if(buttonSound.hit(touch.x, touch.y)){
-					sound = !sound;
-				}
-				if(buttonLove.hit(touch.x, touch.y)){
-					loves = true;
-				}
-				if(buttonBack.hit(touch.x, touch.y)){
-					type = typeScreen.MenuKapy;
-				}
-			}
-
-
 			return false;
 		}
 

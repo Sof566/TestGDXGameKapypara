@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import static com.mygdx.game.MyGdxGame.SCR_HEIGHT;
 import static com.mygdx.game.MyGdxGame.SCR_WIDTH;
 
 import com.badlogic.gdx.math.MathUtils;
@@ -22,12 +23,21 @@ public class Frog {
         y+=vy;
     }
 
+    void moveUp() {
+        y-=vy;
+    }
+
 
     void respawn() {
         vy = 2;
         x = (int)MathUtils.random(0, SCR_WIDTH-width);
         y = -98;
-        System.out.println("frog respawn");
+    }
+
+    void respawnUp() {
+        vx = 2;
+        x = (int)MathUtils.random(0, SCR_WIDTH-width);
+        y = (int)SCR_HEIGHT;
     }
 
     boolean hit(float tx, float ty) {
